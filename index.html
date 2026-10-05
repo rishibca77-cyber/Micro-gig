@@ -1,0 +1,1160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>QuickGig - On-Demand Micro Jobs & Local Gigs Portal</title>
+  <meta name="description" content="Connecting temporary workers and businesses with 35+ available local micro gigs, instant job posting, and resume builder.">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#f0f9ff',
+              100: '#e0f2fe',
+              500: '#0284c7',
+              600: '#0369a1',
+              700: '#075985',
+            },
+            accent: {
+              100: '#fef3c7',
+              500: '#f59e0b',
+              600: '#d97706',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body { -webkit-tap-highlight-color: transparent; }
+    .hide-scrollbar::-webkit-scrollbar { display: none; }
+    .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-900 font-sans min-h-screen flex flex-col antialiased selection:bg-sky-200">
+
+  <!-- Top App Navigation -->
+  <header class="sticky top-0 z-30 bg-white/95 backdrop-blur border-b border-slate-200 shadow-sm">
+    <div class="max-w-5xl mx-auto px-4 h-16 flex items-center justify-between">
+      <div class="flex items-center space-x-3 cursor-pointer" onclick="switchTab('explore')">
+        <div class="w-10 h-10 rounded-xl bg-sky-600 flex items-center justify-center text-white shadow-md shadow-sky-600/20">
+          <i class="fa-solid fa-bolt text-lg"></i>
+        </div>
+        <div>
+          <div class="flex items-center space-x-2">
+            <span class="font-extrabold text-xl tracking-tight text-slate-900">QuickGig</span>
+            <span class="text-[10px] font-bold uppercase tracking-wider bg-sky-100 text-sky-800 px-2 py-0.5 rounded-full">Portal</span>
+          </div>
+          <p class="text-xs text-slate-500 font-medium hidden sm:block">On-Demand Local Micro Jobs & Gigs</p>
+        </div>
+      </div>
+
+      <!-- Desktop Nav Tabs -->
+      <nav class="hidden md:flex items-center space-x-1">
+        <button onclick="switchTab('explore')" id="nav-btn-explore" class="px-4 py-2 rounded-lg text-sm font-semibold text-sky-700 bg-sky-50 flex items-center space-x-2">
+          <i class="fa-solid fa-briefcase"></i>
+          <span>Explore Gigs</span>
+          <span id="badge-total-desktop" class="bg-amber-100 text-amber-800 text-xs px-2 py-0.5 rounded-full font-bold">38</span>
+        </button>
+        <button onclick="switchTab('applications')" id="nav-btn-applications" class="px-4 py-2 rounded-lg text-sm font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-100 flex items-center space-x-2">
+          <i class="fa-solid fa-clipboard-check"></i>
+          <span>My Work</span>
+          <span id="badge-applied-desktop" class="bg-slate-200 text-slate-700 text-xs px-2 py-0.5 rounded-full font-bold">0</span>
+        </button>
+        <button onclick="switchTab('post')" id="nav-btn-post" class="px-4 py-2 rounded-lg text-sm font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-100 flex items-center space-x-2">
+          <i class="fa-solid fa-circle-plus"></i>
+          <span>Post a Gig</span>
+        </button>
+        <button onclick="switchTab('resume')" id="nav-btn-resume" class="px-4 py-2 rounded-lg text-sm font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-100 flex items-center space-x-2">
+          <i class="fa-solid fa-id-card"></i>
+          <span>Worker Resume</span>
+        </button>
+      </nav>
+
+      <!-- Action Button -->
+      <div class="flex items-center space-x-2">
+        <button onclick="switchTab('post')" class="bg-sky-600 hover:bg-sky-700 text-white font-bold text-xs sm:text-sm px-3.5 py-2 rounded-xl shadow-sm transition flex items-center space-x-1.5">
+          <i class="fa-solid fa-plus"></i>
+          <span class="hidden sm:inline">Post Business Ad</span>
+          <span class="sm:hidden">Post</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Notification Banner -->
+  <div id="toast-banner" class="fixed top-20 right-4 z-50 bg-slate-900 text-white text-sm px-4 py-3 rounded-xl shadow-xl hidden flex items-center space-x-3 transition transform duration-300 max-w-sm">
+    <i class="fa-solid fa-circle-check text-emerald-400 text-base" id="toast-icon"></i>
+    <span id="toast-text" class="flex-1 font-medium">Notification message</span>
+    <button onclick="hideToast()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+  </div>
+
+  <!-- Main Content Wrapper -->
+  <main class="flex-1 max-w-5xl w-full mx-auto px-4 py-5 mb-20 md:mb-8">
+
+    <!-- TAB 1: EXPLORE GIGS -->
+    <section id="tab-explore" class="block">
+      <!-- Search & Filters Container -->
+      <div class="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 shadow-sm mb-6">
+        <div class="flex flex-col md:flex-row gap-3">
+          <div class="relative flex-1">
+            <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3.5 text-slate-400 text-sm"></i>
+            <input type="text" id="search-input" oninput="handleSearch(this.value)" placeholder="Search 38+ micro jobs, tasks, locations, moving, cleaning..." class="w-full pl-10 pr-10 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-sky-500 focus:bg-white transition">
+            <button onclick="clearSearch()" id="clear-search-btn" class="hidden absolute right-3 top-3 text-slate-400 hover:text-slate-600">
+              <i class="fa-solid fa-xmark"></i>
+            </button>
+          </div>
+          <div class="flex items-center gap-2">
+            <select id="sort-select" onchange="handleSort(this.value)" class="bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm font-medium py-2.5 px-3 focus:outline-none focus:ring-2 focus:ring-sky-500 text-slate-700">
+              <option value="newest">Sort: Newest First</option>
+              <option value="pay">Sort: Highest Pay ($)</option>
+              <option value="urgent">Sort: Urgent (Starts Today)</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Category Filter Pills -->
+        <div class="mt-4 flex items-center gap-2 overflow-x-auto hide-scrollbar pb-1 text-xs sm:text-sm font-semibold">
+          <button onclick="setCategory('ALL')" class="cat-pill active px-3.5 py-1.5 rounded-full border border-sky-600 bg-sky-600 text-white whitespace-nowrap" data-cat="ALL">All Gigs</button>
+          <button onclick="setCategory('Delivery & Moving')" class="cat-pill px-3.5 py-1.5 rounded-full border border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100 whitespace-nowrap" data-cat="Delivery & Moving">Delivery & Moving</button>
+          <button onclick="setCategory('Events & Catering')" class="cat-pill px-3.5 py-1.5 rounded-full border border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100 whitespace-nowrap" data-cat="Events & Catering">Events & Catering</button>
+          <button onclick="setCategory('Yard & Home Care')" class="cat-pill px-3.5 py-1.5 rounded-full border border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100 whitespace-nowrap" data-cat="Yard & Home Care">Yard & Home</button>
+          <button onclick="setCategory('Store & Shifts')" class="cat-pill px-3.5 py-1.5 rounded-full border border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100 whitespace-nowrap" data-cat="Store & Shifts">Store & Shifts</button>
+          <button onclick="setCategory('Cleaning')" class="cat-pill px-3.5 py-1.5 rounded-full border border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100 whitespace-nowrap" data-cat="Cleaning">Cleaning</button>
+          <button onclick="setCategory('Tech & Creative')" class="cat-pill px-3.5 py-1.5 rounded-full border border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100 whitespace-nowrap" data-cat="Tech & Creative">Tech & Creative</button>
+          <button onclick="setCategory('Pet Care')" class="cat-pill px-3.5 py-1.5 rounded-full border border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100 whitespace-nowrap" data-cat="Pet Care">Pet Care</button>
+        </div>
+
+        <!-- Urgency Filters -->
+        <div class="mt-3 pt-3 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2">
+          <div class="flex items-center gap-2">
+            <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Quick Filters:</span>
+            <button onclick="toggleUrgency('URGENT_TODAY')" id="urgency-today-btn" class="px-2.5 py-1 rounded-lg text-xs font-bold border border-red-200 bg-red-50 text-red-700 hover:bg-red-100 flex items-center space-x-1">
+              <i class="fa-solid fa-bolt text-red-500"></i>
+              <span>Starts Today</span>
+            </button>
+            <button onclick="toggleUrgency('TOMORROW')" id="urgency-tomorrow-btn" class="px-2.5 py-1 rounded-lg text-xs font-bold border border-amber-200 bg-amber-50 text-amber-800 hover:bg-amber-100">
+              Tomorrow
+            </button>
+          </div>
+          <div id="results-count-text" class="text-xs font-semibold text-slate-500">
+            Showing 38 micro jobs
+          </div>
+        </div>
+      </div>
+
+      <!-- Gigs List Grid -->
+      <div id="gigs-grid" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <!-- Rendered by JS -->
+      </div>
+    </section>
+
+    <!-- TAB 2: MY WORK (APPLICATIONS & BOOKMARKS) -->
+    <section id="tab-applications" class="hidden">
+      <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm mb-6">
+        <h2 class="text-xl font-bold text-slate-900">My Work & Submitted Proposals</h2>
+        <p class="text-xs text-slate-500 mt-1">Review active gig applications and bookmarked jobs</p>
+
+        <!-- Subtabs -->
+        <div class="mt-4 flex border-b border-slate-200">
+          <button onclick="switchWorkSubtab('apps')" id="subtab-apps-btn" class="py-2.5 px-4 font-bold text-sm text-sky-600 border-b-2 border-sky-600">
+            Applications (<span id="count-apps">0</span>)
+          </button>
+          <button onclick="switchWorkSubtab('saved')" id="subtab-saved-btn" class="py-2.5 px-4 font-semibold text-sm text-slate-500 hover:text-slate-800">
+            Bookmarked (<span id="count-saved">0</span>)
+          </button>
+        </div>
+      </div>
+
+      <div id="work-content" class="space-y-4">
+        <!-- Rendered by JS -->
+      </div>
+    </section>
+
+    <!-- TAB 3: POST A GIG -->
+    <section id="tab-post" class="hidden">
+      <div class="bg-white rounded-2xl p-5 sm:p-7 border border-slate-200 shadow-sm max-w-2xl mx-auto">
+        <div class="flex items-center space-x-3 mb-4">
+          <div class="w-10 h-10 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center font-bold text-lg">
+            <i class="fa-solid fa-bullhorn"></i>
+          </div>
+          <div>
+            <h2 class="text-xl font-bold text-slate-900">Post an On-Demand Micro Job</h2>
+            <p class="text-xs text-slate-500">Hire quick, reliable local help in under 30 minutes</p>
+          </div>
+        </div>
+
+        <form id="post-gig-form" onsubmit="handlePostGigSubmit(event)" class="space-y-4 mt-6">
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">Business or Poster Name *</label>
+            <input type="text" id="post-biz" required placeholder="e.g. Blue Ridge Cafe, Downtown Hauling, or John D." class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-sky-500 focus:bg-white">
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">Micro Job Title *</label>
+            <input type="text" id="post-title" required placeholder="e.g. Urgent Apartment Move-In Helpers (Sofa & Bed)" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-sky-500 focus:bg-white">
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">Category *</label>
+              <select id="post-cat" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-sky-500">
+                <option value="Delivery & Moving">Delivery & Moving</option>
+                <option value="Events & Catering">Events & Catering</option>
+                <option value="Yard & Home Care">Yard & Home Care</option>
+                <option value="Store & Shifts">Store & Shifts</option>
+                <option value="Cleaning">Cleaning</option>
+                <option value="Tech & Creative">Tech & Creative</option>
+                <option value="Pet Care">Pet Care</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">Pay Rate & Amount *</label>
+              <div class="flex gap-2">
+                <input type="number" id="post-pay-num" required value="30" min="15" max="1000" class="w-24 px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-sky-500">
+                <select id="post-pay-type" class="flex-1 px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-sky-500">
+                  <option value="/hr">$/hr (Hourly)</option>
+                  <option value=" flat">$ flat total</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">Start Date / Urgency *</label>
+              <select id="post-urgency" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-sky-500 font-semibold text-slate-800">
+                <option value="URGENT_TODAY">⚡ Starts Today (Urgent)</option>
+                <option value="TOMORROW">Tomorrow</option>
+                <option value="THIS_WEEKEND">This Weekend</option>
+                <option value="FLEXIBLE">Flexible Date</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">Estimated Duration *</label>
+              <input type="text" id="post-duration" required placeholder="e.g. 3 hours (Today 2PM - 5PM)" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-sky-500">
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">Location / District *</label>
+              <input type="text" id="post-location" required placeholder="e.g. Downtown Harbor Plaza • 1.2 mi" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-sky-500">
+            </div>
+            <div>
+              <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">Helpers Needed</label>
+              <input type="number" id="post-spots" value="1" min="1" max="10" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-sky-500">
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">Job Description & Tasks *</label>
+            <textarea id="post-desc" required rows="3" placeholder="Describe the tasks, tools provided, attire, and payment method upon completion..." class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-sky-500"></textarea>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">Requirements (Separate by pipe |)</label>
+            <input type="text" id="post-reqs" value="Able to lift 35 lbs|Punctual and communicative|Closed-toe footwear" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-sky-500">
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">Contact Phone</label>
+              <input type="tel" id="post-phone" value="(555) 789-0123" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-sky-500">
+            </div>
+            <div>
+              <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">Contact Email</label>
+              <input type="email" id="post-email" value="hiring@localbusiness.example.com" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-sky-500">
+            </div>
+          </div>
+
+          <button type="submit" class="w-full mt-4 bg-sky-600 hover:bg-sky-700 text-white font-bold py-3.5 rounded-xl shadow-md transition flex items-center justify-center space-x-2 text-base">
+            <i class="fa-solid fa-paper-plane"></i>
+            <span>Publish Micro Job Ad Now</span>
+          </button>
+        </form>
+      </div>
+    </section>
+
+    <!-- TAB 4: WORKER RESUME & PROFILE -->
+    <section id="tab-resume" class="hidden">
+      <div class="max-w-2xl mx-auto space-y-4">
+        <!-- Profile Overview Card -->
+        <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm relative">
+          <button onclick="openEditResumeModal()" class="absolute top-5 right-5 bg-sky-50 text-sky-600 hover:bg-sky-100 font-bold text-xs px-3 py-1.5 rounded-lg border border-sky-200 transition flex items-center space-x-1.5">
+            <i class="fa-solid fa-pen"></i>
+            <span>Edit Profile</span>
+          </button>
+
+          <div class="flex items-center space-x-4">
+            <div class="w-16 h-16 rounded-2xl bg-sky-600 text-white font-extrabold text-2xl flex items-center justify-center shadow-lg shadow-sky-600/30">
+              <span id="res-avatar">AR</span>
+            </div>
+            <div>
+              <div class="flex items-center space-x-2">
+                <h2 id="res-name" class="text-xl font-bold text-slate-900">Alex Rivera</h2>
+                <i class="fa-solid fa-circle-check text-sky-500 text-base" title="Verified Worker"></i>
+              </div>
+              <p id="res-headline" class="text-sm font-semibold text-slate-600 mt-0.5">Reliable On-Demand Helper & Event Crew</p>
+              <div class="flex items-center space-x-3 mt-1.5 text-xs">
+                <span class="flex items-center space-x-1 font-bold text-amber-600">
+                  <i class="fa-solid fa-star text-amber-500"></i>
+                  <span id="res-rating">4.9 (18 reviews)</span>
+                </span>
+                <span class="text-slate-300">•</span>
+                <span class="font-bold text-emerald-600 flex items-center space-x-1">
+                  <i class="fa-solid fa-check"></i>
+                  <span id="res-completed">18 Gigs Done</span>
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3 mt-5 pt-4 border-t border-slate-100 text-xs">
+            <div>
+              <span class="text-slate-400 block font-medium">Phone</span>
+              <span id="res-phone" class="font-bold text-slate-800">(555) 234-8971</span>
+            </div>
+            <div>
+              <span class="text-slate-400 block font-medium">Email</span>
+              <span id="res-email" class="font-bold text-slate-800">alex.rivera.work@example.com</span>
+            </div>
+            <div>
+              <span class="text-slate-400 block font-medium">Service Area</span>
+              <span id="res-loc" class="font-bold text-slate-800">Downtown Metro (15 mi radius)</span>
+            </div>
+            <div>
+              <span class="text-slate-400 block font-medium">Immediate Calls</span>
+              <span class="font-bold text-emerald-600">✓ Ready Today</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bio Card -->
+        <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm">
+          <h3 class="text-sm font-bold uppercase tracking-wider text-slate-400 mb-2">Worker Bio & Statement</h3>
+          <p id="res-bio" class="text-sm text-slate-700 leading-relaxed">
+            Dedicated, punctual micro-tasker with experience in retail stocking, moving assistance, event staging, and light maintenance. Fast learner with reliable transportation.
+          </p>
+        </div>
+
+        <!-- Skills Card -->
+        <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm">
+          <h3 class="text-sm font-bold uppercase tracking-wider text-slate-400 mb-3">Skills & Capabilities</h3>
+          <div id="res-skills-list" class="flex flex-wrap gap-2">
+            <!-- Rendered by JS -->
+          </div>
+        </div>
+
+        <!-- Equipment Card -->
+        <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm">
+          <h3 class="text-sm font-bold uppercase tracking-wider text-slate-400 mb-3">Gear & Equipment Owned</h3>
+          <div id="res-gear-list" class="space-y-1.5 text-sm text-slate-700">
+            <!-- Rendered by JS -->
+          </div>
+        </div>
+
+        <!-- Past Experience Card -->
+        <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm">
+          <h3 class="text-sm font-bold uppercase tracking-wider text-slate-400 mb-2">Past Micro Gigs History</h3>
+          <div id="res-exp" class="text-sm text-slate-700 whitespace-pre-line leading-relaxed">
+• Event Setup Staff at Grandview Center (10+ gigs)
+• Moving Assistant for residential relocations
+• Retail Inventory Associate during holiday peak season
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Mobile Bottom Navigation Bar -->
+  <nav class="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-slate-200 py-2 px-3 flex justify-around items-center shadow-lg">
+    <button onclick="switchTab('explore')" id="mob-btn-explore" class="flex flex-col items-center text-sky-600 font-bold text-xs space-y-1">
+      <i class="fa-solid fa-briefcase text-lg"></i>
+      <span>Gigs</span>
+    </button>
+    <button onclick="switchTab('applications')" id="mob-btn-applications" class="flex flex-col items-center text-slate-500 font-medium text-xs space-y-1 relative">
+      <i class="fa-solid fa-clipboard-check text-lg"></i>
+      <span>My Work</span>
+      <span id="badge-applied-mob" class="hidden absolute -top-1 -right-2 bg-sky-600 text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-bold">0</span>
+    </button>
+    <button onclick="switchTab('post')" id="mob-btn-post" class="flex flex-col items-center text-slate-500 font-medium text-xs space-y-1">
+      <i class="fa-solid fa-circle-plus text-lg"></i>
+      <span>Post</span>
+    </button>
+    <button onclick="switchTab('resume')" id="mob-btn-resume" class="flex flex-col items-center text-slate-500 font-medium text-xs space-y-1">
+      <i class="fa-solid fa-id-card text-lg"></i>
+      <span>Resume</span>
+    </button>
+  </nav>
+
+  <!-- MODAL: Gig Details -->
+  <div id="gig-modal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden flex items-end sm:items-center justify-center p-0 sm:p-4">
+    <div class="bg-white w-full max-w-xl max-h-[90vh] rounded-t-3xl sm:rounded-3xl overflow-hidden flex flex-col shadow-2xl animate-fade-in">
+      <div class="p-5 border-b border-slate-100 flex items-center justify-between">
+        <div class="flex items-center space-x-2">
+          <span id="modal-cat" class="px-2.5 py-1 rounded-full text-xs font-bold bg-sky-100 text-sky-800">Category</span>
+          <span id="modal-urgency-badge" class="px-2.5 py-1 rounded-full text-xs font-bold bg-red-100 text-red-800">Starts Today</span>
+        </div>
+        <button onclick="closeGigModal()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-500">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+      <div class="p-5 overflow-y-auto space-y-4 flex-1">
+        <h2 id="modal-title" class="text-xl font-bold text-slate-900 leading-snug">Job Title</h2>
+        <div class="flex items-center space-x-2 text-sm text-slate-600 font-semibold">
+          <span id="modal-biz">Business Name</span>
+          <i class="fa-solid fa-circle-check text-sky-500"></i>
+        </div>
+
+        <div class="bg-amber-50 rounded-2xl p-4 border border-amber-200/60 flex items-center justify-between">
+          <div>
+            <div class="text-[10px] uppercase font-bold tracking-wider text-amber-700">Offered Payout</div>
+            <div id="modal-pay" class="text-2xl font-black text-amber-900">$120 total</div>
+          </div>
+          <div id="modal-spots" class="text-xs font-bold bg-white px-3 py-1.5 rounded-xl border border-amber-200 text-amber-900">
+            2 spots open
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3 text-xs">
+          <div class="bg-slate-50 p-3 rounded-xl border border-slate-100">
+            <span class="text-slate-400 block font-semibold mb-0.5"><i class="fa-solid fa-location-dot text-sky-500 mr-1"></i>Location</span>
+            <span id="modal-loc" class="font-bold text-slate-800">Downtown Harbor</span>
+          </div>
+          <div class="bg-slate-50 p-3 rounded-xl border border-slate-100">
+            <span class="text-slate-400 block font-semibold mb-0.5"><i class="fa-solid fa-clock text-amber-500 mr-1"></i>Duration</span>
+            <span id="modal-dur" class="font-bold text-slate-800">3 hours</span>
+          </div>
+        </div>
+
+        <div>
+          <h4 class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Task Scope & Description</h4>
+          <p id="modal-desc" class="text-sm text-slate-700 leading-relaxed">Scope details</p>
+        </div>
+
+        <div>
+          <h4 class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">Requirements & Gear</h4>
+          <ul id="modal-reqs" class="space-y-1.5 text-sm text-slate-700"></ul>
+        </div>
+
+        <div class="pt-3 border-t border-slate-100">
+          <h4 class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">Direct Employer Contact</h4>
+          <div class="flex gap-2">
+            <a id="modal-phone-btn" href="#" class="flex-1 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs text-center flex items-center justify-center space-x-1.5">
+              <i class="fa-solid fa-phone text-sky-600"></i>
+              <span id="modal-phone">Call</span>
+            </a>
+            <a id="modal-email-btn" href="#" class="flex-1 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs text-center flex items-center justify-center space-x-1.5">
+              <i class="fa-solid fa-envelope text-sky-600"></i>
+              <span>Email</span>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <div class="p-4 border-t border-slate-100 bg-slate-50">
+        <button id="modal-apply-btn" onclick="openApplyModalFromDetail()" class="w-full bg-sky-600 hover:bg-sky-700 text-white font-bold py-3.5 rounded-xl shadow-md transition flex items-center justify-center space-x-2 text-base">
+          <span>Apply with Attached Resume</span>
+          <i class="fa-solid fa-arrow-right text-sm"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: Quick Apply -->
+  <div id="apply-modal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-white w-full max-w-md rounded-2xl overflow-hidden shadow-2xl p-5">
+      <div class="flex justify-between items-center pb-3 border-b border-slate-100">
+        <h3 class="font-bold text-lg text-slate-900">Instant Application</h3>
+        <button onclick="closeApplyModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+      </div>
+
+      <div class="mt-4 space-y-4">
+        <div class="bg-sky-50 border border-sky-100 rounded-xl p-3 flex items-center space-x-3">
+          <div class="w-10 h-10 rounded-full bg-sky-600 text-white flex items-center justify-center font-bold">
+            AR
+          </div>
+          <div class="flex-1 text-xs">
+            <div class="font-bold text-slate-900 text-sm">Alex Rivera <span class="text-amber-600 font-normal">★ 4.9</span></div>
+            <div class="text-slate-600">Attached: Worker Resume & Contact Profile</div>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1">Note to Employer</label>
+          <textarea id="apply-note" rows="3" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-sky-500">I am available for this micro job, have the required gear, and can start punctually.</textarea>
+        </div>
+
+        <div class="flex gap-2 text-xs">
+          <span class="bg-slate-100 text-slate-600 px-2 py-1 rounded-md cursor-pointer hover:bg-slate-200" onclick="appendNote('Have all required tools')">+ Tools Ready</span>
+          <span class="bg-slate-100 text-slate-600 px-2 py-1 rounded-md cursor-pointer hover:bg-slate-200" onclick="appendNote('Can start immediately')">+ Start Now</span>
+        </div>
+
+        <button onclick="submitApplication()" class="w-full bg-sky-600 hover:bg-sky-700 text-white font-bold py-3 rounded-xl shadow-md transition flex items-center justify-center space-x-2">
+          <i class="fa-solid fa-paper-plane"></i>
+          <span>Send Proposal</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: Edit Resume -->
+  <div id="edit-resume-modal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-white w-full max-w-lg rounded-2xl max-h-[90vh] overflow-y-auto shadow-2xl p-6">
+      <div class="flex justify-between items-center pb-3 border-b border-slate-100">
+        <h3 class="font-bold text-lg text-slate-900">Edit Worker Resume</h3>
+        <button onclick="closeEditResumeModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+      </div>
+
+      <form onsubmit="handleSaveResume(event)" class="mt-4 space-y-3.5 text-sm">
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Full Name</label>
+          <input type="text" id="edit-res-name" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl">
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Professional Headline</label>
+          <input type="text" id="edit-res-headline" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl">
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Phone</label>
+            <input type="tel" id="edit-res-phone" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Email</label>
+            <input type="email" id="edit-res-email" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl">
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Bio / Statement</label>
+          <textarea id="edit-res-bio" rows="3" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl"></textarea>
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Skills (comma-separated)</label>
+          <input type="text" id="edit-res-skills" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl">
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Gear & Tools Owned (comma-separated)</label>
+          <input type="text" id="edit-res-gear" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl">
+        </div>
+        <button type="submit" class="w-full mt-4 bg-sky-600 hover:bg-sky-700 text-white font-bold py-3 rounded-xl shadow-md transition">
+          Save Resume Changes
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- APPLICATION LOGIC SCRIPT WITH ALL 38 INITIAL GIGS -->
+  <script>
+    const INITIAL_GIGS = [
+      { id: 1, title: "Urgent Furniture Moving Help (Sofa & Bed)", biz: "Metro Haulers & Relocation", cat: "Delivery & Moving", pay: "$120 total ($40/hr)", payNum: 120, dur: "3 hours (Starts 1:30 PM)", urgency: "URGENT_TODAY", loc: "Downtown District • 1.2 mi", spots: 2, spotsFilled: 0, desc: "Need two reliable helpers to assist moving a 3-seater couch, queen bed frame, and 6 boxes down one flight of stairs into a loading van. Furniture dolly and straps provided.", reqs: ["Able to lift 50+ lbs safely", "Wear closed-toe shoes", "Punctual"], phone: "(555) 301-4492", email: "metro@example.com" },
+      { id: 2, title: "Pop-Up Gourmet Food Festival Cashier & Server", biz: "Blue Ridge Events Co.", cat: "Events & Catering", pay: "$28/hr + Tips", payNum: 28, dur: "5 hours (4:00 PM - 9:00 PM)", urgency: "URGENT_TODAY", loc: "City Riverwalk Plaza • 0.8 mi", spots: 3, spotsFilled: 1, desc: "High-energy food truck festival needs front-of-house cashier and plate runner. You will take orders on an iPad POS system, hand out beverages. Free dinner voucher!", reqs: ["iPad touchscreen comfort", "Friendly customer service", "Black shirt and pants"], phone: "(555) 892-1140", email: "blueridge@example.com" },
+      { id: 3, title: "Autumn Yard Leaf Raking & Bagging", biz: "Oakridge Property Care", cat: "Yard & Home Care", pay: "$90 total ($30/hr)", payNum: 90, dur: "3 hours (Flexible afternoon)", urgency: "URGENT_TODAY", loc: "Highland Park North • 2.4 mi", spots: 1, spotsFilled: 0, desc: "Front and back lawn needs fallen leaves raked, placed into biodegradable paper bags, and set curbside. All heavy rakes and leaf bags supplied.", reqs: ["Outdoor yard comfort", "Gloves recommended", "Able to bend and rake"], phone: "(555) 773-9021", email: "oakridge@example.com" },
+      { id: 4, title: "Boutique Clothing Stock Room Organizer", biz: "Velvet & Pine Apparel", cat: "Store & Shifts", pay: "$25/hr", payNum: 25, dur: "4 hours (Tomorrow 9 AM - 1 PM)", urgency: "TOMORROW", loc: "Fashion Promenade Mall • 3.1 mi", spots: 2, spotsFilled: 0, desc: "Received seasonal winter inventory shipment. Helper needed to unpack boxes, fold sweaters, steam display items, and place tagged hangers into size dividers.", reqs: ["Attention to detail", "Neat folding skills", "Comfortable standing"], phone: "(555) 441-2980", email: "velvet@example.com" },
+      { id: 5, title: "Concert Merch Booth Attendant", biz: "SoundWave Live Productions", cat: "Events & Catering", pay: "$30/hr", payNum: 30, dur: "5 hours (Sat 6 PM - 11 PM)", urgency: "THIS_WEEKEND", loc: "Civic Arena Hall B • 1.9 mi", spots: 4, spotsFilled: 1, desc: "Selling band merchandise (t-shirts, posters, vinyl) inside concert lobby. Card-only POS terminals, upbeat atmosphere. Includes free venue access pass after shift.", reqs: ["Fast basic math", "Customer service", "Age 18+"], phone: "(555) 909-3312", email: "soundwave@example.com" },
+      { id: 6, title: "Post-Event Banquet Hall Reset & Table Fold", biz: "Grandview Ballroom", cat: "Events & Catering", pay: "$110 total ($31/hr)", payNum: 110, dur: "3.5 hours (Tonight 10 PM - 1:30 AM)", urgency: "URGENT_TODAY", loc: "Midtown Center • 0.5 mi", spots: 3, spotsFilled: 0, desc: "After evening gala, fold round banquet tables, stack 150 padded chairs onto rolling dollies, and sweep ballroom. Cash envelope at shift end.", reqs: ["Night owl availability", "Lift 35 lb chairs", "Team player"], phone: "(555) 234-8899", email: "grandview@example.com" },
+      { id: 7, title: "Driveway & Stone Patio Pressure Washing", biz: "Sunset Villa Residence", cat: "Yard & Home Care", pay: "$150 total ($37/hr)", payNum: 150, dur: "4 hours (Tomorrow morning)", urgency: "TOMORROW", loc: "Pine Valley Estates • 4.5 mi", spots: 1, spotsFilled: 0, desc: "Wash 2-car concrete driveway and stone patio to remove moss. Gas commercial 3100 PSI pressure washer and safety goggles supplied by homeowner.", reqs: ["Pressure washer safety", "Waterproof boots", "Careful with plants"], phone: "(555) 671-5520", email: "sunset@example.com" },
+      { id: 8, title: "Urgent Pallet Unloading & Stacking", biz: "North Harbor Logistics Hub", cat: "Delivery & Moving", pay: "$35/hr", payNum: 35, dur: "3 hours (Starts 3:00 PM)", urgency: "URGENT_TODAY", loc: "Industrial Pier 4 • 3.8 mi", spots: 2, spotsFilled: 0, desc: "Container truck delayed offload of boxed dry goods onto wooden pallets in warehouse bay 12. Manual pallet jacks provided.", reqs: ["Steel-toe shoes", "Hi-vis vest provided", "Physical stamina"], phone: "(555) 880-9943", email: "northharbor@example.com" },
+      { id: 9, title: "Weekend Dog Walking & Feeding (2 Golden Retrievers)", biz: "Highland Paws Neighborhood", cat: "Pet Care", pay: "$45/visit (Total $90)", payNum: 90, dur: "1.5 hours per visit (Sat & Sun)", urgency: "THIS_WEEKEND", loc: "Oak Ridge Hill • 1.5 mi", spots: 1, spotsFilled: 0, desc: "Walk two friendly Golden Retrievers for 45 minutes, fill water bowls, and feed measured dry dinner. Keys via secure lockbox.", reqs: ["Large dog experience", "Holds two leashes", "Photo check-in"], phone: "(555) 431-7788", email: "highland@example.com" },
+      { id: 10, title: "Airbnb 2-Bedroom Turnover Cleaning", biz: "Coastal Stays Property Co.", cat: "Cleaning", pay: "$130 total ($52/hr)", payNum: 130, dur: "2.5 hours (Today 11:30 AM - 2 PM)", urgency: "URGENT_TODAY", loc: "Harbor Breeze Condos • 0.9 mi", spots: 1, spotsFilled: 0, desc: "Same-day guest turnaround needed before 3 PM check-in. Strip bed linens, wash 1 load, sanitize kitchen/bath, vacuum rug, restock guest amenities.", reqs: ["Eye for clean details", "Short-term rental cleaning experience", "Reliable"], phone: "(555) 789-2201", email: "coastal@example.com" },
+      { id: 11, title: "Local Bakery Morning Bagel Prep Helper", biz: "Golden Crust Bakehouse", cat: "Store & Shifts", pay: "$26/hr", payNum: 26, dur: "4 hours (Sat 6 AM - 10 AM)", urgency: "THIS_WEEKEND", loc: "Old Town Main St • 1.1 mi", spots: 1, spotsFilled: 0, desc: "Assisting head baker during busiest morning rush. Traying boiled bagels with seeds, moving cooling racks, packaging dozen-boxes for pickups.", reqs: ["Food hygiene awareness", "Early morning riser", "Apron provided"], phone: "(555) 602-3344", email: "goldencrust@example.com" },
+      { id: 12, title: "Office Network Cable Tidy & Desk Monitor Setup", biz: "Apex Innovations Tech Hub", cat: "Tech & Creative", pay: "$35/hr", payNum: 35, dur: "3 hours (Tomorrow 1 PM - 4 PM)", urgency: "TOMORROW", loc: "Metro Innovation Park • 2.8 mi", spots: 2, spotsFilled: 0, desc: "Assisting IT coordinator with 12 new hybrid workstations. Unboxing dual monitors, clamping arms to desks, routing cables into clean cable raceways.", reqs: ["PC cable basics", "Organized cable management", "Gentle with electronics"], phone: "(555) 345-6712", email: "apex@example.com" },
+      { id: 13, title: "Apartment Move-In Truck Unloader (2nd Floor)", biz: "Sarah M. (Resident)", cat: "Delivery & Moving", pay: "$140 flat ($46/hr)", payNum: 140, dur: "3 hours (Today 2:00 PM)", urgency: "URGENT_TODAY", loc: "Maple Grove Apts • 2.1 mi", spots: 1, spotsFilled: 0, desc: "My U-Haul truck arrives at 2 PM. Need an extra pair of strong hands to carry dining table, dresser, TV box, and wardrobe containers up to second floor.", reqs: ["Heavy lifting comfort", "Respectful of property", "Cash paid upon completion"], phone: "(555) 912-3847", email: "sarah@example.com" },
+      { id: 14, title: "Wedding Floral Arrangement Setup & Tear Down", biz: "Petals & Vows Floral Studio", cat: "Events & Catering", pay: "$28/hr", payNum: 28, dur: "4.5 hours (Sunday 1 PM - 5:30 PM)", urgency: "THIS_WEEKEND", loc: "Botanical Conservatory • 4.0 mi", spots: 2, spotsFilled: 0, desc: "Help transport flower vases from delivery van to ceremony arch, place centerpiece rings on guest tables, and pack glassware into foam crates after.", reqs: ["Careful hands", "Able to lift 20 lb crates", "All-black attire"], phone: "(555) 543-9821", email: "petals@example.com" },
+      { id: 15, title: "Garden Bed Weeding & Mulch Spreading", biz: "Cedar Crest Gardens", cat: "Yard & Home Care", pay: "$100 total ($28/hr)", payNum: 100, dur: "3.5 hours (Tomorrow 10 AM)", urgency: "TOMORROW", loc: "Westfield Suburb • 3.6 mi", spots: 1, spotsFilled: 0, desc: "Clear crabgrass from 3 decorative flower beds, then wheelbarrow cedar bark mulch from front driveway pile and spread 2 inches deep. Shovels ready.", reqs: ["Garden hand tools experience", "Work gloves provided", "Physical stamina"], phone: "(555) 762-1100", email: "cedarcrest@example.com" },
+      { id: 16, title: "Artisan Coffee Cart Barista Shift Cover", biz: "RoastCraft Specialty Coffee", cat: "Store & Shifts", pay: "$27/hr + Tips", payNum: 27, dur: "5 hours (Today 12 PM - 5 PM)", urgency: "URGENT_TODAY", loc: "Central Library Courtyard • 0.6 mi", spots: 1, spotsFilled: 0, desc: "Our scheduled barista had an emergency. Pull espresso shots on La Marzocco machine, steam milk, and serve cold brew. Friendly regulars and great tips!", reqs: ["Espresso machine experience", "Milk texturing basics", "Food handler card"], phone: "(555) 321-7789", email: "roastcraft@example.com" },
+      { id: 17, title: "Post-Construction Dust & Window Wipe Down", biz: "Summit Builders Remodeling", cat: "Cleaning", pay: "$32/hr", payNum: 32, dur: "4 hours (Tomorrow 8 AM - 12 PM)", urgency: "TOMORROW", loc: "Lakeside Medical Clinic • 5.0 mi", spots: 2, spotsFilled: 0, desc: "New clinic renovation finishing up. Need helpers to vacuum drywall dust with HEPA vacuum, wipe baseboards, and clean partition glass panes.", reqs: ["N95 masks provided", "Sturdy shoes", "No construction experience needed"], phone: "(555) 834-0012", email: "summit@example.com" },
+      { id: 18, title: "Product Photoshoot Lighting & Prop Assistant", biz: "Lumina Creative Studio", cat: "Tech & Creative", pay: "$125 flat ($41/hr)", payNum: 125, dur: "3 hours (Tomorrow 2 PM - 5 PM)", urgency: "TOMORROW", loc: "Arts District Lofts • 1.4 mi", spots: 1, spotsFilled: 0, desc: "Assisting commercial photographer with kitchenware catalog shoot. Adjust softbox diffusers, position ceramic mugs and wooden boards, wipe fingerprints.", reqs: ["Visual eye", "Punctual & quiet on set", "Enthusiastic about creative work"], phone: "(555) 456-9901", email: "lumina@example.com" },
+      { id: 19, title: "Cat Sitting & Medication Administer (3 Days)", biz: "WhiskerCare Pet Help", cat: "Pet Care", pay: "$35/visit (Total $105)", payNum: 105, dur: "45 mins per day (Fri - Sun)", urgency: "FLEXIBLE", loc: "Heritage Hill Condos • 1.8 mi", spots: 1, spotsFilled: 0, desc: "Visit senior indoor Siamese cat once daily. Administer oral liquid vitamin in wet food treat, scoop litter box, freshen water fountain, and 20 mins playtime.", reqs: ["Feline care experience", "Gentle demeanor", "Daily photo check-in"], phone: "(555) 234-9988", email: "whiskercare@example.com" },
+      { id: 20, title: "Farmers Market Tent Assembly & Produce Arranging", biz: "Valley Fresh Organic Farm", cat: "Store & Shifts", pay: "$25/hr", payNum: 25, dur: "4 hours (Sat 6:30 AM - 10:30 AM)", urgency: "THIS_WEEKEND", loc: "City Square Commons • 0.7 mi", spots: 2, spotsFilled: 0, desc: "Set up 10x20 canopy tent, unfold display tables, unload crates of apples and honey jars from farm van, and write price chalkboards. Fresh organic cider included!", reqs: ["Canopy tent setup", "Carry 30 lb crates", "Morning energy"], phone: "(555) 781-4455", email: "valleyfresh@example.com" },
+      { id: 21, title: "Commercial Kitchen Deep Dishwashing & Floor Scrub", biz: "Trattoria Bella Italian", cat: "Cleaning", pay: "$28/hr + Meal", payNum: 28, dur: "4 hours (Tonight 9 PM - 1 AM)", urgency: "URGENT_TODAY", loc: "Culinary Row • 0.9 mi", spots: 1, spotsFilled: 0, desc: "Operate commercial Hobart pass-through dish machine, wash large soup stockpots, wipe line tables, mop floors. Free pasta meal at end of shift!", reqs: ["Sanitation awareness", "High stamina", "Free meal included"], phone: "(555) 555-8822", email: "trattoria@example.com" },
+      { id: 22, title: "Wooden Garden Fence Staining & Painting", biz: "Maplewood Estates HOA", cat: "Yard & Home Care", pay: "$180 flat ($36/hr)", payNum: 180, dur: "5 hours (Saturday morning)", urgency: "THIS_WEEKEND", loc: "Maplewood Court • 3.2 mi", spots: 2, spotsFilled: 0, desc: "Apply protective weather stain to 60-foot cedar privacy fence using paint rollers and wide brushes. Drop cloths, roller trays, and stain provided.", reqs: ["Clothes you don't mind staining", "Attention to even coating", "Sun protection"], phone: "(555) 639-4410", email: "maplewood@example.com" },
+      { id: 23, title: "Grocery Delivery Van Loading & Route Sorter", biz: "QuickCart Local Express", cat: "Delivery & Moving", pay: "$27/hr", payNum: 27, dur: "3.5 hours (Today 4:30 PM - 8 PM)", urgency: "URGENT_TODAY", loc: "East Hub Fulfillment • 2.6 mi", spots: 3, spotsFilled: 1, desc: "Sorting insulated grocery cooler bags by neighborhood delivery zones and loading into refrigerated delivery vans. Clear barcode labeling system.", reqs: ["Temperature tag awareness", "Lift 25 lb totes", "Punctual"], phone: "(555) 443-8890", email: "quickcart@example.com" },
+      { id: 24, title: "Charity 5K Fun Run Registration & Water Station", biz: "Hope Community Foundation", cat: "Events & Catering", pay: "$80 stipend + T-Shirt", payNum: 80, dur: "3 hours (Sunday 7 AM - 10 AM)", urgency: "THIS_WEEKEND", loc: "Riverside Memorial Park • 1.3 mi", spots: 5, spotsFilled: 2, desc: "Hand out runner bibs at check-in tables, fill water paper cups at mile 2 hydration station, cheer on 400 charity runners! Fun and uplifting outdoor morning.", reqs: ["Energetic cheering attitude", "Willing to stand outdoors", "Coffee provided"], phone: "(555) 901-2244", email: "hope@example.com" },
+      { id: 25, title: "WordPress Menu & Contact Form Bug Fix", biz: "Bella Vista Boutique Salon", cat: "Tech & Creative", pay: "$95 flat ($47/hr)", payNum: 95, dur: "2 hours (Flexible / Remote)", urgency: "FLEXIBLE", loc: "Remote / Downtown • 0.5 mi", spots: 1, spotsFilled: 0, desc: "Small salon website has broken dropdown menu on mobile screens and contact form throws SMTP error. Need quick developer or tech pro to diagnose and resolve.", reqs: ["WordPress & CSS basics", "Quick communicator", "Complete in 24 hrs"], phone: "(555) 765-4321", email: "bellavista@example.com" },
+      { id: 26, title: "Moving Pod Packing & Blanket Wrap Specialist", biz: "SwiftShift Relocation", cat: "Delivery & Moving", pay: "$32/hr", payNum: 32, dur: "4 hours (Tomorrow 1 PM - 5 PM)", urgency: "TOMORROW", loc: "Beacon Heights • 3.0 mi", spots: 2, spotsFilled: 0, desc: "Load 16-foot PODS storage container in driveway. Must tightly tetris-pack boxes, pad wooden antiques with quilted moving blankets, secure nylon straps.", reqs: ["Professional packing experience", "Balances cargo weight", "Reliable"], phone: "(555) 234-7711", email: "swiftshift@example.com" },
+      { id: 27, title: "Vacant Apartment Carpet Shampoo & Vacuum", biz: "Prime Rentals Management", cat: "Cleaning", pay: "$115 total ($38/hr)", payNum: 115, dur: "3 hours (Tomorrow 10 AM - 1 PM)", urgency: "TOMORROW", loc: "Northgate Luxury Flats • 2.5 mi", spots: 1, spotsFilled: 0, desc: "Run extraction machine across living room and two empty bedrooms in unit 304. Machine and cleaning solution already positioned in unit.", reqs: ["Carpet cleaner experience a plus", "Leaves apartment locked", "Immediate payout"], phone: "(555) 887-3210", email: "primerentals@example.com" },
+      { id: 28, title: "Weekend Puppy Socializer & Kennel Assistant", biz: "Happy Tails Sanctuary", cat: "Pet Care", pay: "$24/hr", payNum: 24, dur: "3 hours (Sunday 1 PM - 4 PM)", urgency: "THIS_WEEKEND", loc: "Green Valley Road • 4.1 mi", spots: 2, spotsFilled: 0, desc: "Assist rescue shelter staff with supervised playtime for rescue puppies in fenced grass yard, refreshing water bowls, handing out treats during public adoption.", reqs: ["Compassionate with animals", "Must be 18+", "Outdoor sneakers"], phone: "(555) 432-8877", email: "happytails@example.com" },
+      { id: 29, title: "Vintage Record Store Inventory Barcode Tagging", biz: "Groove & Vinyl Lounge", cat: "Store & Shifts", pay: "$24/hr", payNum: 24, dur: "4 hours (Tomorrow 11 AM - 3 PM)", urgency: "TOMORROW", loc: "Uptown Cultural Strip • 1.6 mi", spots: 1, spotsFilled: 0, desc: "Acquired collection of 500 classic rock & jazz LPs. Helper will inspect vinyl condition, enter catalog code, apply price sticker, place in genre alphabetical bins.", reqs: ["Respect for vintage vinyl", "Basic tablet typing", "Attention to detail"], phone: "(555) 998-1243", email: "groove@example.com" },
+      { id: 30, title: "Backyard Tree Branch Pruning & Wood Chipping", biz: "Timberline Tree Services", cat: "Yard & Home Care", pay: "$160 total ($40/hr)", payNum: 160, dur: "4 hours (Starts 1:00 PM Today)", urgency: "URGENT_TODAY", loc: "Crestview Heights • 3.4 mi", spots: 2, spotsFilled: 0, desc: "Ground assistant needed to drag fallen pine branches from arborists up driveway and feed into tow-behind wood chipper. Gloves, hard hats, ear protection supplied.", reqs: ["Heavy brush comfort", "Safety gear worn", "High work ethic"], phone: "(555) 554-1189", email: "timberline@example.com" },
+      { id: 31, title: "Tech Conference Badge Printing & Greeter", biz: "InnovateX Regional Summit", cat: "Events & Catering", pay: "$29/hr", payNum: 29, dur: "5 hours (Tomorrow 7:30 AM - 12:30 PM)", urgency: "TOMORROW", loc: "Metropolitan Convention Center • 0.9 mi", spots: 4, spotsFilled: 1, desc: "Greet 800 tech summit attendees at the glass lobby desk, scan QR confirmation codes on tablets, and hand out printed name lanyards with welcome bags.", reqs: ["Warm welcoming presence", "Thermal printer comfort", "Business casual"], phone: "(555) 876-2211", email: "innovatex@example.com" },
+      { id: 32, title: "Restaurant Patio Heat Lamps & Furniture Setup", biz: "Riverfront Grill & Seafood", cat: "Events & Catering", pay: "$100 total ($33/hr)", payNum: 100, dur: "3 hours (Today 3 PM - 6 PM)", urgency: "URGENT_TODAY", loc: "Riverside Boardwalk • 1.1 mi", spots: 2, spotsFilled: 0, desc: "Preparing waterfront patio for evening service. Uncover and clean 8 patio heaters, connect propane tanks, position 14 teak outdoor dining sets and umbrella stands.", reqs: ["Roll heavy umbrella bases", "Careful with teak wood", "Punctual"], phone: "(555) 345-8819", email: "riverfront@example.com" },
+      { id: 33, title: "E-Commerce Package Bagging & Shipping Label Print", biz: "TrendCraft Leather Goods", cat: "Store & Shifts", pay: "$25/hr", payNum: 25, dur: "4 hours (Tomorrow 1 PM - 5 PM)", urgency: "TOMORROW", loc: "Makers District Warehouse • 2.0 mi", spots: 2, spotsFilled: 0, desc: "Package leather wallets and belts into branded linen pouches, pack into mailer boxes, print thermal USPS shipping labels, and stack into postal bins.", reqs: ["Organized packing rhythm", "Clear handwriting", "Clean hands"], phone: "(555) 667-8899", email: "trendcraft@example.com" },
+      { id: 34, title: "Showroom Car Wash & Interior Vacuuming (5 Cars)", biz: "Prestige Auto Gallery", cat: "Cleaning", pay: "$175 total ($39/hr)", payNum: 175, dur: "4.5 hours (Sat 9 AM - 1:30 PM)", urgency: "THIS_WEEKEND", loc: "Auto Mall Expressway • 4.8 mi", spots: 2, spotsFilled: 0, desc: "Hand-wash exterior bodies, dry with chamois cloths, vacuum carpets, and apply tire shine to 5 luxury sedans in indoor detailing bay. All soaps and tools provided.", reqs: ["Swirl-free washing", "Car enthusiast preferred", "Clean driver record"], phone: "(555) 439-0012", email: "prestige@example.com" },
+      { id: 35, title: "Mobile App Usability Testing (In-Person Task Run)", biz: "Apex Digital UX Studio", cat: "Tech & Creative", pay: "$60 flat ($60/hr)", payNum: 60, dur: "1 hour (Today 4 PM or 5 PM)", urgency: "URGENT_TODAY", loc: "Downtown Coworking Hub • 0.4 mi", spots: 3, spotsFilled: 1, desc: "Participate in a 60-minute recorded usability session for a new local grocery app. Speak thoughts aloud while completing 4 simple shopping tasks on a test phone.", reqs: ["Smartphone user", "Honest feedback", "Immediate $60 payout"], phone: "(555) 123-9988", email: "research@example.com" },
+      { id: 36, title: "Gutter Cleaning on Single-Story Bungalow", biz: "Greenfield Home Repairs", cat: "Yard & Home Care", pay: "$120 total ($48/hr)", payNum: 120, dur: "2.5 hours (Tomorrow 11 AM)", urgency: "TOMORROW", loc: "Greenfield Neighborhood • 2.7 mi", spots: 1, spotsFilled: 0, desc: "Clear pine needles and debris from 110 feet of gutters on low single-story house. Stable 6-foot step ladder, bucket scoops, and garden hose flush attachments ready.", reqs: ["Comfortable with ladders", "Work gloves recommended", "Safety conscious"], phone: "(555) 881-2299", email: "greenfield@example.com" },
+      { id: 37, title: "Courier Van Co-Pilot / Heavy Package Runner", biz: "RushRoute Express Delivery", cat: "Delivery & Moving", pay: "$28/hr", payNum: 28, dur: "5 hours (Today 1 PM - 6 PM)", urgency: "URGENT_TODAY", loc: "Central Logistics Yard • 1.7 mi", spots: 2, spotsFilled: 0, desc: "Ride along in Mercedes Sprinter courier van with delivery driver. Grab boxes from van, scan barcode on mobile device, and carry to commercial storefront front desks.", reqs: ["Fast walker with good cardio", "Carry 30-40 lb parcels", "Friendly demeanor"], phone: "(555) 670-3321", email: "rushroute@example.com" },
+      { id: 38, title: "Handmade Pottery Fair Booth Assistant", biz: "Clay & Wood Artisan Goods", cat: "Store & Shifts", pay: "$26/hr + Store Discount", payNum: 26, dur: "5 hours (Sun 11 AM - 4 PM)", urgency: "THIS_WEEKEND", loc: "Artisan Market Pavilion • 1.0 mi", spots: 1, spotsFilled: 0, desc: "Assist local ceramic artist at the seasonal craft fair. Wrap fragile handmade mugs and ceramic bowls in honeycomb paper, bag purchases, process Square card payments.", reqs: ["Gentle handling of fragile pottery", "Friendly conversation", "Punctual arrival"], phone: "(555) 349-1122", email: "clayandwood@example.com" }
+    ];
+
+    // Local state
+    let gigs = JSON.parse(localStorage.getItem('quickgig_gigs')) || INITIAL_GIGS;
+    let applications = JSON.parse(localStorage.getItem('quickgig_apps')) || [];
+    let savedGigIds = JSON.parse(localStorage.getItem('quickgig_saved')) || [];
+    let resume = JSON.parse(localStorage.getItem('quickgig_resume')) || {
+      name: "Alex Rivera",
+      headline: "Reliable On-Demand Helper & Event Crew",
+      phone: "(555) 234-8971",
+      email: "alex.rivera.work@example.com",
+      loc: "Downtown Metro (15 mi radius)",
+      rating: "4.9 (18 reviews)",
+      completed: 18,
+      bio: "Dedicated, punctual micro-tasker with experience in retail stocking, moving assistance, event staging, and light maintenance. Fast learner with reliable transportation.",
+      skills: ["Heavy Lifting", "Furniture Assembly", "Event Setup", "Customer Support", "Inventory Count", "Pressure Washing", "Driver's License"],
+      gear: ["Pickup Truck", "Hand Dolly", "Tool Set", "Work Gloves", "Steel-toe Boots"],
+      exp: "• Event Setup Staff at Grandview Center (10+ gigs)\n• Moving Assistant for residential relocations\n• Retail Inventory Associate during holiday peak season"
+    };
+
+    let activeCategory = 'ALL';
+    let activeUrgency = null;
+    let searchQuery = '';
+    let sortMethod = 'newest';
+    let currentDetailGig = null;
+    let currentWorkSubtab = 'apps';
+
+    // Initialization
+    function init() {
+      renderGigs();
+      updateBadges();
+      renderResume();
+    }
+
+    function switchTab(tabId) {
+      ['explore', 'applications', 'post', 'resume'].forEach(t => {
+        document.getElementById(`tab-${t}`).classList.add('hidden');
+        const deskBtn = document.getElementById(`nav-btn-${t}`);
+        if (deskBtn) {
+          deskBtn.classList.remove('text-sky-700', 'bg-sky-50');
+          deskBtn.classList.add('text-slate-600');
+        }
+        const mobBtn = document.getElementById(`mob-btn-${t}`);
+        if (mobBtn) {
+          mobBtn.classList.remove('text-sky-600', 'font-bold');
+          mobBtn.classList.add('text-slate-500');
+        }
+      });
+
+      document.getElementById(`tab-${tabId}`).classList.remove('hidden');
+      const curDesk = document.getElementById(`nav-btn-${tabId}`);
+      if (curDesk) {
+        curDesk.classList.add('text-sky-700', 'bg-sky-50');
+        curDesk.classList.remove('text-slate-600');
+      }
+      const curMob = document.getElementById(`mob-btn-${tabId}`);
+      if (curMob) {
+        curMob.classList.add('text-sky-600', 'font-bold');
+        curMob.classList.remove('text-slate-500');
+      }
+
+      if (tabId === 'applications') renderWorkSection();
+      if (tabId === 'explore') renderGigs();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function renderGigs() {
+      const container = document.getElementById('gigs-grid');
+      let filtered = gigs.filter(g => {
+        const matchesQuery = !searchQuery || 
+          g.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          g.biz.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          g.loc.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          g.desc.toLowerCase().includes(searchQuery.toLowerCase());
+
+        const matchesCat = activeCategory === 'ALL' || g.cat.toLowerCase() === activeCategory.toLowerCase();
+        const matchesUrgency = !activeUrgency || g.urgency === activeUrgency;
+
+        return matchesQuery && matchesCat && matchesUrgency;
+      });
+
+      // Sort
+      filtered.sort((a, b) => {
+        if (sortMethod === 'pay') return b.payNum - a.payNum;
+        if (sortMethod === 'urgent') {
+          const prioA = a.urgency === 'URGENT_TODAY' ? 0 : 1;
+          const prioB = b.urgency === 'URGENT_TODAY' ? 0 : 1;
+          return prioA - prioB;
+        }
+        return b.id - a.id;
+      });
+
+      document.getElementById('results-count-text').innerText = `Showing ${filtered.length} micro jobs`;
+
+      if (filtered.length === 0) {
+        container.innerHTML = `
+          <div class="col-span-full py-12 text-center bg-white rounded-2xl border border-slate-200 p-6">
+            <i class="fa-solid fa-briefcase text-4xl text-slate-300 mb-3"></i>
+            <h3 class="text-base font-bold text-slate-800">No micro jobs match your search</h3>
+            <p class="text-xs text-slate-500 mt-1 max-w-sm mx-auto">Try clearing search keywords or selecting "All Gigs" to see all 38 available opportunities.</p>
+            <button onclick="clearSearch()" class="mt-4 px-4 py-2 bg-sky-600 text-white rounded-xl text-xs font-bold">Clear Filters</button>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = filtered.map(gig => {
+        const isApplied = applications.some(a => a.gigId === gig.id);
+        const isSaved = savedGigIds.includes(gig.id);
+        const spotsLeft = gig.spots - gig.spotsFilled;
+
+        let urgencyTag = '';
+        if (gig.urgency === 'URGENT_TODAY') {
+          urgencyTag = '<span class="px-2 py-0.5 rounded-md text-[11px] font-bold bg-red-100 text-red-700 flex items-center gap-1"><i class="fa-solid fa-bolt text-red-500"></i> Starts Today</span>';
+        } else if (gig.urgency === 'TOMORROW') {
+          urgencyTag = '<span class="px-2 py-0.5 rounded-md text-[11px] font-bold bg-amber-100 text-amber-800">Tomorrow</span>';
+        } else if (gig.isUserPosted) {
+          urgencyTag = '<span class="px-2 py-0.5 rounded-md text-[11px] font-bold bg-emerald-100 text-emerald-800">Business Ad</span>';
+        }
+
+        return `
+          <div class="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 shadow-sm hover:shadow-md transition flex flex-col justify-between cursor-pointer" onclick="openGigModal(${gig.id})">
+            <div>
+              <div class="flex items-center justify-between mb-2.5">
+                <div class="flex items-center space-x-2">
+                  <span class="px-2.5 py-0.5 rounded-md text-[11px] font-bold bg-sky-100 text-sky-800">${gig.cat}</span>
+                  ${urgencyTag}
+                </div>
+                <button onclick="event.stopPropagation(); toggleSave(${gig.id})" class="text-slate-400 hover:text-amber-500 p-1">
+                  <i class="${isSaved ? 'fa-solid text-amber-500' : 'fa-regular'} fa-bookmark"></i>
+                </button>
+              </div>
+
+              <h3 class="font-bold text-slate-900 text-base leading-snug line-clamp-2">${gig.title}</h3>
+              <div class="flex items-center space-x-1.5 text-xs text-slate-500 font-semibold mt-1">
+                <span>${gig.biz}</span>
+                <i class="fa-solid fa-circle-check text-sky-500 text-[11px]"></i>
+              </div>
+
+              <div class="flex flex-wrap items-center gap-3 text-xs text-slate-500 mt-2.5">
+                <span class="flex items-center gap-1"><i class="fa-solid fa-location-dot text-slate-400"></i> ${gig.loc}</span>
+                <span class="flex items-center gap-1"><i class="fa-solid fa-clock text-slate-400"></i> ${gig.dur}</span>
+              </div>
+
+              <p class="text-xs text-slate-600 mt-2 line-clamp-2 leading-relaxed">${gig.desc}</p>
+            </div>
+
+            <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between">
+              <div>
+                <span class="text-[10px] font-bold text-amber-600 block uppercase tracking-wider">Pay Rate</span>
+                <span class="font-black text-slate-900 text-sm sm:text-base">${gig.pay}</span>
+              </div>
+
+              <div class="flex items-center space-x-2">
+                ${spotsLeft > 0 ? `<span class="text-[11px] text-slate-500 bg-slate-100 px-2 py-1 rounded-lg font-medium">${spotsLeft} spot${spotsLeft > 1 ? 's' : ''} left</span>` : ''}
+                ${isApplied 
+                  ? `<span class="px-3 py-1.5 rounded-xl bg-emerald-100 text-emerald-800 font-bold text-xs flex items-center space-x-1"><i class="fa-solid fa-check"></i><span>Applied</span></span>`
+                  : `<button onclick="event.stopPropagation(); openApplyModal(${gig.id})" class="bg-sky-600 hover:bg-sky-700 text-white font-bold text-xs px-3.5 py-1.5 rounded-xl shadow-sm transition">Quick Apply</button>`
+                }
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function handleSearch(val) {
+      searchQuery = val;
+      document.getElementById('clear-search-btn').classList.toggle('hidden', !val);
+      renderGigs();
+    }
+
+    function clearSearch() {
+      searchQuery = '';
+      document.getElementById('search-input').value = '';
+      document.getElementById('clear-search-btn').classList.add('hidden');
+      activeCategory = 'ALL';
+      activeUrgency = null;
+      document.querySelectorAll('.cat-pill').forEach(b => {
+        b.classList.toggle('bg-sky-600', b.getAttribute('data-cat') === 'ALL');
+        b.classList.toggle('text-white', b.getAttribute('data-cat') === 'ALL');
+        b.classList.toggle('bg-slate-50', b.getAttribute('data-cat') !== 'ALL');
+        b.classList.toggle('text-slate-700', b.getAttribute('data-cat') !== 'ALL');
+      });
+      document.getElementById('urgency-today-btn').classList.remove('ring-2', 'ring-red-500');
+      document.getElementById('urgency-tomorrow-btn').classList.remove('ring-2', 'ring-amber-500');
+      renderGigs();
+    }
+
+    function setCategory(cat) {
+      activeCategory = cat;
+      document.querySelectorAll('.cat-pill').forEach(b => {
+        const isSel = b.getAttribute('data-cat').toLowerCase() === cat.toLowerCase();
+        b.classList.toggle('bg-sky-600', isSel);
+        b.classList.toggle('text-white', isSel);
+        b.classList.toggle('border-sky-600', isSel);
+        b.classList.toggle('bg-slate-50', !isSel);
+        b.classList.toggle('text-slate-700', !isSel);
+      });
+      renderGigs();
+    }
+
+    function toggleUrgency(urg) {
+      if (activeUrgency === urg) {
+        activeUrgency = null;
+      } else {
+        activeUrgency = urg;
+      }
+      document.getElementById('urgency-today-btn').classList.toggle('ring-2', activeUrgency === 'URGENT_TODAY');
+      document.getElementById('urgency-today-btn').classList.toggle('ring-red-500', activeUrgency === 'URGENT_TODAY');
+      document.getElementById('urgency-tomorrow-btn').classList.toggle('ring-2', activeUrgency === 'TOMORROW');
+      document.getElementById('urgency-tomorrow-btn').classList.toggle('ring-amber-500', activeUrgency === 'TOMORROW');
+      renderGigs();
+    }
+
+    function handleSort(val) {
+      sortMethod = val;
+      renderGigs();
+    }
+
+    function toggleSave(gigId) {
+      const idx = savedGigIds.indexOf(gigId);
+      if (idx > -1) {
+        savedGigIds.splice(idx, 1);
+        showToast("Removed from saved bookmarks");
+      } else {
+        savedGigIds.push(gigId);
+        showToast("Saved to Bookmarked Gigs ⭐");
+      }
+      localStorage.setItem('quickgig_saved', JSON.stringify(savedGigIds));
+      updateBadges();
+      renderGigs();
+      if (currentWorkSubtab === 'saved') renderWorkSection();
+    }
+
+    function openGigModal(gigId) {
+      const gig = gigs.find(g => g.id === gigId);
+      if (!gig) return;
+      currentDetailGig = gig;
+
+      document.getElementById('modal-cat').innerText = gig.cat;
+      document.getElementById('modal-title').innerText = gig.title;
+      document.getElementById('modal-biz').innerText = gig.biz;
+      document.getElementById('modal-pay').innerText = gig.pay;
+      document.getElementById('modal-loc').innerText = gig.loc;
+      document.getElementById('modal-dur').innerText = gig.dur;
+      document.getElementById('modal-desc').innerText = gig.desc;
+      document.getElementById('modal-phone').innerText = gig.phone;
+      document.getElementById('modal-phone-btn').href = `tel:${gig.phone}`;
+      document.getElementById('modal-email-btn').href = `mailto:${gig.email}`;
+
+      const spotsLeft = gig.spots - gig.spotsFilled;
+      document.getElementById('modal-spots').innerText = `${spotsLeft} of ${gig.spots} spots open`;
+
+      const urgBadge = document.getElementById('modal-urgency-badge');
+      if (gig.urgency === 'URGENT_TODAY') {
+        urgBadge.className = 'px-2.5 py-1 rounded-full text-xs font-bold bg-red-100 text-red-800';
+        urgBadge.innerHTML = '⚡ Starts Today';
+        urgBadge.classList.remove('hidden');
+      } else if (gig.urgency === 'TOMORROW') {
+        urgBadge.className = 'px-2.5 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800';
+        urgBadge.innerText = 'Tomorrow';
+        urgBadge.classList.remove('hidden');
+      } else {
+        urgBadge.classList.add('hidden');
+      }
+
+      const reqsUl = document.getElementById('modal-reqs');
+      reqsUl.innerHTML = (gig.reqs || []).map(r => `<li class="flex items-center space-x-2"><i class="fa-solid fa-check text-emerald-500 text-xs"></i><span>${r}</span></li>`).join('');
+
+      const isApplied = applications.some(a => a.gigId === gig.id);
+      const applyBtn = document.getElementById('modal-apply-btn');
+      if (isApplied) {
+        applyBtn.innerText = "✓ Application Already Submitted";
+        applyBtn.disabled = true;
+        applyBtn.className = "w-full bg-emerald-600 text-white font-bold py-3.5 rounded-xl cursor-default";
+      } else {
+        applyBtn.innerHTML = `<span>Instant Apply with Attached Resume</span> <i class="fa-solid fa-arrow-right text-sm"></i>`;
+        applyBtn.disabled = false;
+        applyBtn.className = "w-full bg-sky-600 hover:bg-sky-700 text-white font-bold py-3.5 rounded-xl shadow-md transition flex items-center justify-center space-x-2";
+      }
+
+      document.getElementById('gig-modal').classList.remove('hidden');
+    }
+
+    function closeGigModal() {
+      document.getElementById('gig-modal').classList.add('hidden');
+      currentDetailGig = null;
+    }
+
+    function openApplyModal(gigId) {
+      const gig = gigs.find(g => g.id === gigId);
+      if (!gig) return;
+      currentDetailGig = gig;
+      document.getElementById('apply-modal').classList.remove('hidden');
+    }
+
+    function openApplyModalFromDetail() {
+      if (!currentDetailGig) return;
+      closeGigModal();
+      document.getElementById('apply-modal').classList.remove('hidden');
+    }
+
+    function closeApplyModal() {
+      document.getElementById('apply-modal').classList.add('hidden');
+    }
+
+    function appendNote(txt) {
+      const ta = document.getElementById('apply-note');
+      ta.value = `${ta.value.trim()} • ${txt}`;
+    }
+
+    function submitApplication() {
+      if (!currentDetailGig) return;
+      const note = document.getElementById('apply-note').value.trim();
+
+      const newApp = {
+        id: Date.now(),
+        gigId: currentDetailGig.id,
+        gigTitle: currentDetailGig.title,
+        biz: currentDetailGig.biz,
+        pay: currentDetailGig.pay,
+        loc: currentDetailGig.loc,
+        note: note,
+        date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }),
+        status: 'PENDING'
+      };
+
+      applications.unshift(newApp);
+      localStorage.setItem('quickgig_apps', JSON.stringify(applications));
+
+      // Increase spots filled
+      currentDetailGig.spotsFilled = Math.min(currentDetailGig.spots, currentDetailGig.spotsFilled + 1);
+      localStorage.setItem('quickgig_gigs', JSON.stringify(gigs));
+
+      closeApplyModal();
+      updateBadges();
+      renderGigs();
+      showToast(`Application sent to ${currentDetailGig.biz}! Check 'My Work' tab.`);
+    }
+
+    function updateBadges() {
+      const appCount = applications.length;
+      document.getElementById('badge-total-desktop').innerText = gigs.length;
+      document.getElementById('badge-applied-desktop').innerText = appCount;
+      const mobBadge = document.getElementById('badge-applied-mob');
+      if (appCount > 0) {
+        mobBadge.classList.remove('hidden');
+        mobBadge.innerText = appCount;
+      } else {
+        mobBadge.classList.add('hidden');
+      }
+      document.getElementById('count-apps').innerText = appCount;
+      document.getElementById('count-saved').innerText = savedGigIds.length;
+    }
+
+    function switchWorkSubtab(tab) {
+      currentWorkSubtab = tab;
+      const appsBtn = document.getElementById('subtab-apps-btn');
+      const savedBtn = document.getElementById('subtab-saved-btn');
+
+      if (tab === 'apps') {
+        appsBtn.className = "py-2.5 px-4 font-bold text-sm text-sky-600 border-b-2 border-sky-600";
+        savedBtn.className = "py-2.5 px-4 font-semibold text-sm text-slate-500 hover:text-slate-800";
+      } else {
+        savedBtn.className = "py-2.5 px-4 font-bold text-sm text-sky-600 border-b-2 border-sky-600";
+        appsBtn.className = "py-2.5 px-4 font-semibold text-sm text-slate-500 hover:text-slate-800";
+      }
+      renderWorkSection();
+    }
+
+    function renderWorkSection() {
+      const container = document.getElementById('work-content');
+
+      if (currentWorkSubtab === 'apps') {
+        if (applications.length === 0) {
+          container.innerHTML = `
+            <div class="bg-white rounded-2xl p-8 border border-slate-200 text-center">
+              <i class="fa-solid fa-clipboard-list text-4xl text-slate-300 mb-2"></i>
+              <h3 class="text-base font-bold text-slate-800">No applications sent yet</h3>
+              <p class="text-xs text-slate-500 mt-1 max-w-sm mx-auto">Explore 38+ available gigs and click "Quick Apply" with your resume.</p>
+              <button onclick="switchTab('explore')" class="mt-4 px-4 py-2 bg-sky-600 text-white rounded-xl text-xs font-bold">Explore Micro Jobs</button>
+            </div>
+          `;
+          return;
+        }
+
+        container.innerHTML = applications.map(app => `
+          <div class="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 shadow-sm flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between mb-2">
+                <span class="px-2.5 py-1 rounded-md text-[11px] font-bold bg-amber-100 text-amber-800 flex items-center space-x-1">
+                  <i class="fa-regular fa-clock"></i>
+                  <span>Under Review</span>
+                </span>
+                <span class="text-xs text-slate-400 font-medium">${app.date}</span>
+              </div>
+              <h3 class="font-bold text-slate-900 text-base">${app.gigTitle}</h3>
+              <p class="text-xs font-semibold text-slate-600 mt-0.5">${app.biz}</p>
+              <div class="flex items-center space-x-3 text-xs text-slate-500 mt-2">
+                <span><i class="fa-solid fa-location-dot mr-1"></i>${app.loc}</span>
+                <span class="font-bold text-amber-600">${app.pay}</span>
+              </div>
+              ${app.note ? `<p class="text-xs bg-slate-50 p-2.5 rounded-xl border border-slate-100 mt-3 text-slate-600 italic">“${app.note}”</p>` : ''}
+            </div>
+            <div class="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
+              <span class="text-slate-400">Attached: ${resume.name} (4.9 ★)</span>
+              <button onclick="withdrawApp(${app.id})" class="text-red-500 hover:text-red-700 font-bold">Withdraw</button>
+            </div>
+          </div>
+        `).join('');
+      } else {
+        const savedGigs = gigs.filter(g => savedGigIds.includes(g.id));
+        if (savedGigs.length === 0) {
+          container.innerHTML = `
+            <div class="bg-white rounded-2xl p-8 border border-slate-200 text-center">
+              <i class="fa-regular fa-bookmark text-4xl text-slate-300 mb-2"></i>
+              <h3 class="text-base font-bold text-slate-800">No bookmarked gigs</h3>
+              <p class="text-xs text-slate-500 mt-1 max-w-sm mx-auto">Click the bookmark icon on any job card in Explore to save it here.</p>
+              <button onclick="switchTab('explore')" class="mt-4 px-4 py-2 bg-sky-600 text-white rounded-xl text-xs font-bold">Browse Gigs</button>
+            </div>
+          `;
+          return;
+        }
+
+        container.innerHTML = savedGigs.map(gig => `
+          <div class="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 shadow-sm flex flex-col justify-between">
+            <div class="flex justify-between items-start">
+              <div>
+                <span class="px-2.5 py-0.5 rounded-md text-[11px] font-bold bg-sky-100 text-sky-800">${gig.cat}</span>
+                <h3 class="font-bold text-slate-900 text-base mt-2">${gig.title}</h3>
+                <p class="text-xs text-slate-500 font-semibold">${gig.biz} • ${gig.loc}</p>
+              </div>
+              <button onclick="toggleSave(${gig.id})" class="text-amber-500 p-1"><i class="fa-solid fa-bookmark"></i></button>
+            </div>
+            <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between">
+              <span class="font-black text-slate-900">${gig.pay}</span>
+              <button onclick="openApplyModal(${gig.id})" class="bg-sky-600 hover:bg-sky-700 text-white font-bold text-xs px-3.5 py-1.5 rounded-xl shadow-sm">Quick Apply</button>
+            </div>
+          </div>
+        `).join('');
+      }
+    }
+
+    function withdrawApp(appId) {
+      applications = applications.filter(a => a.id !== appId);
+      localStorage.setItem('quickgig_apps', JSON.stringify(applications));
+      updateBadges();
+      renderWorkSection();
+      renderGigs();
+      showToast("Application withdrawn");
+    }
+
+    function handlePostGigSubmit(e) {
+      e.preventDefault();
+      const biz = document.getElementById('post-biz').value.trim();
+      const title = document.getElementById('post-title').value.trim();
+      const cat = document.getElementById('post-cat').value;
+      const payNum = parseFloat(document.getElementById('post-pay-num').value) || 25;
+      const payType = document.getElementById('post-pay-type').value;
+      const urgency = document.getElementById('post-urgency').value;
+      const duration = document.getElementById('post-duration').value.trim();
+      const location = document.getElementById('post-location').value.trim();
+      const spots = parseInt(document.getElementById('post-spots').value) || 1;
+      const desc = document.getElementById('post-desc').value.trim();
+      const reqsRaw = document.getElementById('post-reqs').value.trim();
+      const phone = document.getElementById('post-phone').value.trim();
+      const email = document.getElementById('post-email').value.trim();
+
+      const newGig = {
+        id: Date.now(),
+        title: title,
+        biz: biz,
+        cat: cat,
+        pay: `$${payNum}${payType}`,
+        payNum: payNum,
+        dur: duration,
+        urgency: urgency,
+        loc: location,
+        spots: spots,
+        spotsFilled: 0,
+        desc: desc,
+        reqs: reqsRaw.split('|').map(r => r.trim()).filter(Boolean),
+        phone: phone,
+        email: email,
+        isUserPosted: true
+      };
+
+      gigs.unshift(newGig);
+      localStorage.setItem('quickgig_gigs', JSON.stringify(gigs));
+
+      document.getElementById('post-gig-form').reset();
+      updateBadges();
+      switchTab('explore');
+      showToast("Business micro job ad published! Now live in portal.");
+    }
+
+    function renderResume() {
+      document.getElementById('res-avatar').innerText = resume.name.split(' ').map(n => n[0]).join('').substring(0,2).toUpperCase();
+      document.getElementById('res-name').innerText = resume.name;
+      document.getElementById('res-headline').innerText = resume.headline;
+      document.getElementById('res-phone').innerText = resume.phone;
+      document.getElementById('res-email').innerText = resume.email;
+      document.getElementById('res-loc').innerText = resume.loc;
+      document.getElementById('res-bio').innerText = resume.bio;
+      document.getElementById('res-exp').innerText = resume.exp;
+
+      const skillsEl = document.getElementById('res-skills-list');
+      skillsEl.innerHTML = (resume.skills || []).map(s => `
+        <span class="bg-sky-50 text-sky-700 border border-sky-200/60 font-semibold px-3 py-1 rounded-xl text-xs">${s}</span>
+      `).join('');
+
+      const gearEl = document.getElementById('res-gear-list');
+      gearEl.innerHTML = (resume.gear || []).map(g => `
+        <div class="flex items-center space-x-2"><i class="fa-solid fa-check text-emerald-500 text-xs"></i><span>${g}</span></div>
+      `).join('');
+    }
+
+    function openEditResumeModal() {
+      document.getElementById('edit-res-name').value = resume.name;
+      document.getElementById('edit-res-headline').value = resume.headline;
+      document.getElementById('edit-res-phone').value = resume.phone;
+      document.getElementById('edit-res-email').value = resume.email;
+      document.getElementById('edit-res-bio').value = resume.bio;
+      document.getElementById('edit-res-skills').value = (resume.skills || []).join(', ');
+      document.getElementById('edit-res-gear').value = (resume.gear || []).join(', ');
+      document.getElementById('edit-resume-modal').classList.remove('hidden');
+    }
+
+    function closeEditResumeModal() {
+      document.getElementById('edit-resume-modal').classList.add('hidden');
+    }
+
+    function handleSaveResume(e) {
+      e.preventDefault();
+      resume.name = document.getElementById('edit-res-name').value.trim();
+      resume.headline = document.getElementById('edit-res-headline').value.trim();
+      resume.phone = document.getElementById('edit-res-phone').value.trim();
+      resume.email = document.getElementById('edit-res-email').value.trim();
+      resume.bio = document.getElementById('edit-res-bio').value.trim();
+      resume.skills = document.getElementById('edit-res-skills').value.split(',').map(s => s.trim()).filter(Boolean);
+      resume.gear = document.getElementById('edit-res-gear').value.split(',').map(s => s.trim()).filter(Boolean);
+
+      localStorage.setItem('quickgig_resume', JSON.stringify(resume));
+      renderResume();
+      closeEditResumeModal();
+      showToast("Worker Resume updated successfully!");
+    }
+
+    let toastTimer = null;
+    function showToast(msg) {
+      clearTimeout(toastTimer);
+      const b = document.getElementById('toast-banner');
+      document.getElementById('toast-text').innerText = msg;
+      b.classList.remove('hidden');
+      toastTimer = setTimeout(hideToast, 4000);
+    }
+
+    function hideToast() {
+      document.getElementById('toast-banner').classList.add('hidden');
+    }
+
+    // Run on startup
+    window.addEventListener('DOMContentLoaded', init);
+  </script>
+</body>
+</html>

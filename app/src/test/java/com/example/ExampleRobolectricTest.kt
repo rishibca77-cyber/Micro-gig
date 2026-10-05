@@ -27,4 +27,11 @@ class ExampleRobolectricTest {
     assertTrue("Seed data must have more than 35 jobs, found: $totalGigs", totalGigs > 35)
     assertEquals(38, totalGigs)
   }
+
+  @Test
+  fun `main activity launches successfully`() {
+    val controller = org.robolectric.Robolectric.buildActivity(MainActivity::class.java).setup()
+    val activity = controller.get()
+    org.junit.Assert.assertNotNull(activity)
+  }
 }

@@ -1,0 +1,90 @@
+{
+  "entities": {
+    "Gig": {
+      "title": "Gig",
+      "description": "An on-demand micro job or local task opportunity",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "businessName": { "type": "string" },
+        "category": { "type": "string" },
+        "payRate": { "type": "string" },
+        "payAmountNumeric": { "type": "number" },
+        "isHourly": { "type": "boolean" },
+        "duration": { "type": "string" },
+        "urgency": { "type": "string" },
+        "location": { "type": "string" },
+        "spotsAvailable": { "type": "integer" },
+        "spotsFilled": { "type": "integer" },
+        "description": { "type": "string" },
+        "requirements": { "type": "string" },
+        "contactPhone": { "type": "string" },
+        "contactEmail": { "type": "string" },
+        "postedTime": { "type": "string" },
+        "posterId": { "type": "string" },
+        "isVerifiedEmployer": { "type": "boolean" },
+        "isUserPosted": { "type": "boolean" },
+        "createdAt": { "type": "integer" }
+      },
+      "required": ["title", "businessName", "category", "payRate", "duration", "location"]
+    },
+    "Application": {
+      "title": "Application",
+      "description": "An application submitted by a worker for a micro job",
+      "type": "object",
+      "properties": {
+        "gigId": { "type": "string" },
+        "gigTitle": { "type": "string" },
+        "businessName": { "type": "string" },
+        "payRate": { "type": "string" },
+        "location": { "type": "string" },
+        "applicantId": { "type": "string" },
+        "applicantName": { "type": "string" },
+        "applicantPhone": { "type": "string" },
+        "applicantEmail": { "type": "string" },
+        "coverNote": { "type": "string" },
+        "status": { "type": "string" },
+        "appliedAt": { "type": "integer" }
+      },
+      "required": ["gigId", "gigTitle", "applicantId", "applicantName", "status"]
+    },
+    "Resume": {
+      "title": "Resume",
+      "description": "Worker resume and availability profile",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "fullName": { "type": "string" },
+        "headline": { "type": "string" },
+        "phone": { "type": "string" },
+        "email": { "type": "string" },
+        "location": { "type": "string" },
+        "serviceRadiusMiles": { "type": "integer" },
+        "bio": { "type": "string" },
+        "skillsCsv": { "type": "string" },
+        "pastExperience": { "type": "string" },
+        "equipmentCsv": { "type": "string" },
+        "isAvailableImmediately": { "type": "boolean" },
+        "availableEvenings": { "type": "boolean" },
+        "availableWeekends": { "type": "boolean" },
+        "rating": { "type": "number" },
+        "completedGigsCount": { "type": "integer" }
+      },
+      "required": ["userId", "fullName"]
+    }
+  },
+  "firestore": {
+    "/gigs/{gigId}": {
+      "schema": { "$ref": "#/entities/Gig" },
+      "description": "Public catalog of micro jobs available for booking"
+    },
+    "/applications/{applicationId}": {
+      "schema": { "$ref": "#/entities/Application" },
+      "description": "Submitted applications for gigs"
+    },
+    "/resumes/{userId}": {
+      "schema": { "$ref": "#/entities/Resume" },
+      "description": "Worker resumes and availability profiles"
+    }
+  }
+}

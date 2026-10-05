@@ -3,6 +3,8 @@ package com.example.ui
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.R
+import com.example.auth.AuthManager
 import com.example.data.local.AppDatabase
 import com.example.data.local.ApplicationEntity
 import com.example.data.local.GigEntity
@@ -10,6 +12,8 @@ import com.example.data.local.ResumeEntity
 import com.example.data.model.GigCategory
 import com.example.data.model.UrgencyLevel
 import com.example.data.repository.GigRepository
+import com.google.firebase.auth.FirebaseUser
+import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -31,6 +35,9 @@ enum class GigSort(val label: String) {
 }
 
 data class GigUiState(
+    val currentUser: FirebaseUser? = null,
+    val isSigningIn: Boolean = false,
+    val authError: String? = null,
     val filteredGigs: List<GigEntity> = emptyList(),
     val totalGigsCount: Int = 0,
     val savedGigs: List<GigEntity> = emptyList(),
@@ -63,8 +70,11 @@ private data class FilterData(
 )
 
 class GigViewModel(application: Application) : AndroidViewModel(application) {
+    private val authManager = AuthManager(application)
     private val repository: GigRepository
 
+    private val _isSigningIn = MutableStateFlow(false)
+    private val _authError = MutableStateFlow<String?>(null)
     private val _activeTab = MutableStateFlow(GigNavTab.EXPLORE)
     private val _searchQuery = MutableStateFlow("")
     private val _selectedCategory = MutableStateFlow(GigCategory.ALL)
@@ -76,7 +86,13 @@ class GigViewModel(application: Application) : AndroidViewModel(application) {
 
     init {
         val database = AppDatabase.getInstance(application)
-        repository = GigRepository(database)
+        val databaseId = application.getString(R.string.firestore_database_id)
+        val firestore = try {
+            FirebaseFirestore.getInstance(databaseId)
+        } catch (e: Exception) {
+            null
+        }
+        repository = GigRepository(database, firestore)
         viewModelScope.launch {
             repository.ensureSeeded()
         }
@@ -102,12 +118,12 @@ class GigViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     val uiState: StateFlow<GigUiState> = combine(
+        authManager.authStateFlow(),
+        _isSigningIn,
+        _authError,
         repoDataFlow,
-        filterDataFlow,
-        _activeTab,
-        _selectedGigForDetails,
-        _gigToApply
-    ) { repoData, filters, tab, selectedGig, gigToApply ->
+        filterDataFlow
+    ) { user, isSigningIn, authError, repoData, filters ->
         val filtered = repoData.allGigs.filter { gig ->
             val matchesQuery = filters.query.isBlank() ||
                 gig.title.contains(filters.query, ignoreCase = true) ||
@@ -135,26 +151,58 @@ class GigViewModel(application: Application) : AndroidViewModel(application) {
         }
 
         GigUiState(
+            currentUser = user,
+            isSigningIn = isSigningIn,
+            authError = authError,
             filteredGigs = filtered,
             totalGigsCount = repoData.allGigs.size,
             savedGigs = repoData.savedGigs,
             applications = repoData.applications,
             appliedGigIds = repoData.appliedGigIds.toSet(),
             resume = repoData.resume,
-            activeTab = tab,
+            activeTab = _activeTab.value,
             searchQuery = filters.query,
             selectedCategory = filters.category,
             selectedUrgency = filters.urgency,
             selectedSort = filters.sort,
-            selectedGigForDetails = selectedGig,
-            gigToApply = gigToApply,
+            selectedGigForDetails = _selectedGigForDetails.value,
+            gigToApply = _gigToApply.value,
             snackbarMessage = _snackbarMessage.value
         )
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000),
-        initialValue = GigUiState()
+        initialValue = GigUiState(currentUser = authManager.currentUser)
     )
+
+    fun signInWithGoogle() {
+        viewModelScope.launch {
+            _isSigningIn.value = true
+            _authError.value = null
+            val result = authManager.signInWithGoogle()
+            _isSigningIn.value = false
+            result.onSuccess { user ->
+                _snackbarMessage.value = "Welcome back, ${user.displayName ?: "Worker"}!"
+                // Update resume name if default
+                val currentResume = uiState.value.resume
+                if (currentResume != null && user.displayName != null && currentResume.fullName == "Alex Rivera") {
+                    repository.saveResume(
+                        currentResume.copy(
+                            fullName = user.displayName ?: currentResume.fullName,
+                            email = user.email ?: currentResume.email
+                        )
+                    )
+                }
+            }.onFailure { error ->
+                _authError.value = "Sign-in cancelled or failed: ${error.localizedMessage}"
+            }
+        }
+    }
+
+    fun signOut() {
+        authManager.signOut()
+        _snackbarMessage.value = "Signed out"
+    }
 
     fun setTab(tab: GigNavTab) {
         _activeTab.value = tab
@@ -255,7 +303,7 @@ class GigViewModel(application: Application) : AndroidViewModel(application) {
             )
             repository.postGig(gig)
             _activeTab.value = GigNavTab.EXPLORE
-            _snackbarMessage.value = "Micro gig posted successfully! Now live in the portal."
+            _snackbarMessage.value = "Micro gig posted to Firestore! Now live in the portal."
         }
     }
 
@@ -292,7 +340,7 @@ class GigViewModel(application: Application) : AndroidViewModel(application) {
                 availableWeekends = weekends
             )
             repository.saveResume(updated)
-            _snackbarMessage.value = "Worker Resume & Profile updated!"
+            _snackbarMessage.value = "Worker Resume & Profile synced to Firestore!"
         }
     }
 

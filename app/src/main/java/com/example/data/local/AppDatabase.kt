@@ -32,17 +32,6 @@ abstract class AppDatabase : RoomDatabase() {
                     "quickgig_database.db"
                 )
                 .fallbackToDestructiveMigration()
-                .addCallback(object : Callback() {
-                    override fun onCreate(db: SupportSQLiteDatabase) {
-                        super.onCreate(db)
-                        // Seed database in background coroutine
-                        CoroutineScope(Dispatchers.IO).launch {
-                            val database = getInstance(context)
-                            database.gigDao().insertGigs(SeedData.initialGigs)
-                            database.resumeDao().insertOrUpdateResume(ResumeEntity())
-                        }
-                    }
-                })
                 .build()
                 INSTANCE = instance
                 instance

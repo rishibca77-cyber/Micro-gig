@@ -40,6 +40,7 @@ import com.example.ui.screens.ApplicationsScreen
 import com.example.ui.screens.ExploreScreen
 import com.example.ui.screens.PostGigScreen
 import com.example.ui.screens.ResumeScreen
+import com.example.ui.screens.SignInScreen
 import com.example.ui.theme.GigAccent
 import com.example.ui.theme.GigPrimary
 import com.example.ui.theme.MyApplicationTheme
@@ -50,14 +51,29 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             MyApplicationTheme {
-                QuickGigApp()
+                MainRoot()
             }
         }
     }
 }
 
 @Composable
-fun QuickGigApp(viewModel: GigViewModel = viewModel()) {
+fun MainRoot(viewModel: GigViewModel = viewModel()) {
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+    if (uiState.currentUser == null) {
+        SignInScreen(
+            isLoading = uiState.isSigningIn,
+            errorMessage = uiState.authError,
+            onGoogleSignInClick = { viewModel.signInWithGoogle() }
+        )
+    } else {
+        QuickGigApp(viewModel = viewModel)
+    }
+}
+
+@Composable
+fun QuickGigApp(viewModel: GigViewModel) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
 

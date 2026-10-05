@@ -1,0 +1,39 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    // Gigs collection: Micro job postings
+    match /gigs/{gigId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() && 
+        (request.resource.data.posterId == request.auth.uid || request.resource.data.isUserPosted == false);
+      allow update, delete: if isAuthenticated() && 
+        (resource.data.posterId == request.auth.uid || request.resource.data.spotsFilled == resource.data.spotsFilled + 1);
+    }
+
+    // Applications collection: Gigs applied for
+    match /applications/{applicationId} {
+      allow read: if isAuthenticated() && 
+        (resource.data.applicantId == request.auth.uid);
+      allow create: if isAuthenticated() && 
+        request.resource.data.applicantId == request.auth.uid;
+      allow update, delete: if isAuthenticated() && 
+        resource.data.applicantId == request.auth.uid;
+    }
+
+    // Resumes collection: Worker profiles
+    match /resumes/{userId} {
+      allow read: if isAuthenticated();
+      allow write: if isOwner(userId);
+    }
+  }
+}
