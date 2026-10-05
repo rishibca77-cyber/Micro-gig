@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">QuickGig</string>
+    <string name="tagline">Immediate on-demand micro jobs &amp; local gigs</string>
+    <string name="tab_explore">Explore Gigs</string>
+    <string name="tab_my_applications">My Applications</string>
+    <string name="tab_post_gig">Post a Gig</string>
+    <string name="tab_my_resume">Worker Resume</string>
+    <string name="search_placeholder">Search 35+ micro jobs, tasks, locations...</string>
+</resources>

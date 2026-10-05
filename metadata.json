@@ -1,0 +1,6 @@
+{
+  "name": "QuickGig",
+  "description": "On-demand micro job portal connecting temporary workers and businesses with 35+ local gigs, instant job posting, and resume builder.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

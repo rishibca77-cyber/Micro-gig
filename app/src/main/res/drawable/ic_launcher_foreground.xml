@@ -1,0 +1,30 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Work briefcase / badge base -->
+    <path
+        android:fillColor="#1E3A5F"
+        android:pathData="M32,44 L76,44 A4,4 0 0,1 80,48 L80,76 A6,6 0 0,1 74,82 L34,82 A6,6 0 0,1 28,76 L28,48 A4,4 0 0,1 32,44 Z" />
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#38BDF8"
+        android:strokeWidth="3.5"
+        android:strokeLineCap="round"
+        android:pathData="M44,44 L44,38 A6,6 0 0,1 50,32 L58,32 A6,6 0 0,1 64,38 L64,44" />
+    <path
+        android:fillColor="#0284C7"
+        android:pathData="M28,54 L80,54 L80,58 L28,58 Z" />
+    <!-- Dynamic Lightning Bolt for Fast/Micro Jobs -->
+    <path
+        android:fillColor="#FBBF24"
+        android:pathData="M56,36 L43,56 L53,56 L47,74 L65,52 L55,52 Z" />
+    <!-- Speed accent dots -->
+    <path
+        android:fillColor="#38BDF8"
+        android:pathData="M70,36 A3,3 0 1,1 70,36.01 Z" />
+    <path
+        android:fillColor="#38BDF8"
+        android:pathData="M38,36 A2,2 0 1,1 38,36.01 Z" />
+</vector>
